@@ -57,8 +57,7 @@ Version history:
 0.2 (2011-11-24) http://www.mediafire.com/file/d5y4tfyha53lwfd/srrdb_0.2.zip
 	- recursively adds files (when srs is in Sample directory)
 	- clean up .txt files
-	
-0.3 (2012-10-18) 
+0.3 (2012-10-18) http://www.mediafire.com/file/hvvtpzo0pkn0vj6/srrdb_0.3.zip
 	- keeps sample directory capitalization
 	- crashed on gme-comandante_2003)_sample.srs
 
