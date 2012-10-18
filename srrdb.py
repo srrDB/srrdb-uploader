@@ -58,7 +58,7 @@ Version history:
 	- recursively adds files (when srs is in Sample directory)
 	- clean up .txt files
 	
-0.3 (2012-
+0.3 (2012-10-18) 
 	- keeps sample directory capitalization
 	- crashed on gme-comandante_2003)_sample.srs
 
