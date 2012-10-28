@@ -60,6 +60,8 @@ Version history:
 0.3 (2012-10-18) http://www.mediafire.com/file/hvvtpzo0pkn0vj6/srrdb_0.3.zip
 	- keeps sample directory capitalization
 	- crashed on gme-comandante_2003)_sample.srs
+0.4 (2012-10-28)
+	- txt fixing improved
 
 Author: Gfy <tsl@yninovg.pbz>
 """
@@ -81,9 +83,9 @@ import codecs
 
 # supported extensions for files to add to a release
 # checks config file and -e parameter later on
-_SUPPORTED_FILES = (".srs", ".avi.txt", ".mkv.txt", ".srr") 
+_SUPPORTED_FILES = (".srs", ".avi.txt", ".mkv.txt", ".mp4.txt", ".srr") 
 
-__version__ = "0.3"
+__version__ = "0.4"
 _USER_AGENT = "Gfy's srrDB upload script version %s." % __version__
 
 # some configuration options
@@ -105,6 +107,7 @@ def fix_txt(file_path):
 	newdata = re.sub(".*Corruption ", "Corruption ", data)
 	newdata = re.sub(".*Unexpected Error", "Unexpected Error", newdata)
 	newdata = newdata.replace("\xff", ".") # cp850 \xa0
+	newdata = newdata.replace("\xa0", ".")
 	newdata = re.sub("\r(?!\n)|(?<!\r)\n", "\r\n", newdata)
 	if newdata != data:
 		print("'%s' fixed." % os.path.basename(file_path))

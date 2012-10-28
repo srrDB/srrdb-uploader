@@ -106,6 +106,7 @@ def fix_txt(filename):
     data = codecs.open(filename, encoding="latin-1", mode="r").read()
     newdata = re.sub(".*Corruption", "Corruption", data)
     newdata = newdata.replace("\xff", ".") # cp850 \xa0
+    newdata = newdata.replace("\xa0", ".")
     newdata = re.sub("\r(?!\n)|(?<!\r)\n", "\r\n", newdata)
     if newdata != data:
         print(filename)
