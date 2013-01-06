@@ -23,10 +23,10 @@ How it works:
 !! Beware of side effects. Use the -n parameter before uploading. !!
 This script allows you to upload new SRR files to srrdb.com:
    srrdb.py first.file.srr second.release.srr
-It also allows you to _batch_ upload additional files such .srs files:
+It also allows you to _batch_ upload additional files such as .srs files:
    srrdb.py /path/to/a/directory/ C:\or\Windows\style
    srrdb.py . -n
-   srrdb.py . -e .srs,.avi.txt,.mkv.txt --fix-txt -n
+   srrdb.py . -e .avi.txt,.mkv.txt --fix-txt -n
 Each directory must be structured in the following way:
    +---Release-Name/
    |       file.to.store.srs
@@ -62,6 +62,9 @@ Version history:
 	- crashed on gme-comandante_2003)_sample.srs
 0.4 (2012-10-28)
 	- txt fixing improved
+0.5 (2013-01-06)
+	- fixed for v2 of the site
+	- rellist code removed
 
 Author: Gfy <tsl@yninovg.pbz>
 """
@@ -83,9 +86,10 @@ import codecs
 
 # supported extensions for files to add to a release
 # checks config file and -e parameter later on
-_SUPPORTED_FILES = (".srs", ".avi.txt", ".mkv.txt", ".mp4.txt", ".srr") 
+_SUPPORTED_FILES = (".srs", ".srr",
+                    ".avi.txt", ".mkv.txt", ".mp4.txt", ".wmv.txt") 
 
-__version__ = "0.4"
+__version__ = "0.5"
 _USER_AGENT = "Gfy's srrDB upload script version %s." % __version__
 
 # some configuration options
@@ -166,7 +170,7 @@ class Srrdb(object):
 		self.body = {
 				'username' : username,
 				'password' : password,
-				'login': 'Login!'
+				'login': 'Login'
 				}
 		self.headers = { 
 				'Referer' : self.baseurl,
@@ -178,13 +182,13 @@ class Srrdb(object):
 	def _login(self):
 		""" Authenticate. """  
 		data = urllib.urlencode(self.body)
-		request = urllib2.Request(
-			self.baseurl + "login.php", data, self.headers)
-		HTMLSource = self.opener.open(request).read()
-		res = re.findall(".*Welcome, .+%s.+" % self.username, HTMLSource)
+		request = urllib2.Request(self.baseurl + "account/login", 
+		                          data, self.headers)
+		html_source = self.opener.open(request).read()
+		res = re.findall(".*Welcome, .+%s.+" % self.username, html_source)
 		if len(res):
 			print("Authentication successful.")
-			match = re.match(".*profile\.php\?uid=(\d+).*", res[0])
+			match = re.match(".*/account/profile/(\d+).*", res[0])
 			self.user_id = match.group(1)
 			print("%s has user id %s." % (self.username, self.user_id))
 		else:
@@ -217,36 +221,40 @@ class Srrdb(object):
 				"file": open(filename, "rb"),
 				"add": "Add",})
 		headers = addDicts(self.headers, headers)
-		url = self.baseurl + "addfile.php?release=" + release
+		url = self.baseurl + "release/add/" + release
 		request = Request(url, datagen, headers)
 		opener.add_handler(HTTPCookieProcessor(self.cj))
-
-		# Actually do the request, and get the response
-		handle = urllib2.urlopen(request)
-		html_source = handle.read()
 		
 		if folder != "":
 			fn = folder + "/"
 		else:
 			fn = ""
 		fn += os.path.basename(filename)
-		
-		# sre_constants.error: unbalanced parenthesis
-		if len(re.findall(".*%s.*" % re.escape(fn), html_source)):
-			print("'%s' successfully uploaded." % fn)
-			# also gives this result if it was already there in the first place
-			success = True
-		elif len(re.findall(".*Release does not exist.*", html_source)):
-			print("!!! '%s': no such release." % release)
-			success = False
-		elif len(re.findall(".*an error occurred while adding the file.*", 
-							html_source)):  
-			print("!!! '%s': file already added." % fn)
-			success = False
-		else:
-			print(html_source)
-			print("The site has been changed.")
-			success = False
+
+		# Actually do the request, and get the response
+		try:
+			handle = urllib2.urlopen(request)
+			html_source = handle.read()
+			
+			# sre_constants.error: unbalanced parenthesis
+			if len(re.findall(".*%s.*" % re.escape(fn), html_source)):
+				print("'%s' successfully uploaded." % fn)
+				# also gives this result if it was already there in the first place
+				success = True
+	#		elif len(re.findall(".*an error occurred while adding the file.*", 
+	#							html_source)):  
+	#			print("!!! '%s': file already added." % fn)
+	#			success = False
+			else:
+				print(html_source)
+				print("The site has been changed.")
+				success = False
+		except urllib2.HTTPError, e:
+			if e.code == 404:
+				print("!!! '%s': no such release." % release)
+				success = False
+			else:
+				raise
 		
 		return success
 
@@ -262,7 +270,7 @@ class Srrdb(object):
 				"upload": "Upload",})
 		headers = addDicts(self.headers, headers)
 		
-		url = self.baseurl + "upload.php"
+		url = self.baseurl + "upload"
 		request = Request(url, datagen, headers)
 		opener.add_handler(HTTPCookieProcessor(self.cj))
 
@@ -270,61 +278,15 @@ class Srrdb(object):
 		handle = urllib2.urlopen(request)
 		html_source = handle.read()
 		
-		# <span style="font-weight: bold; color: #008000;"><a href="details.php
-		# ?release=RELNAME" style="font-weight: bold; color: #008000;">RELNAME
-		# </a> was added.</span><br />
-		
-		# <span style="font-weight: bold; color: #FF0000;"><a href="details.php
-		# ?release=RELNAME" style="font-weight: bold; color: #FF0000;">RELNAME
-		# </a> already exists.</span><br />
-		
-		if len(re.findall(".*</a> was added\.</span><br />.*", html_source)):
+		if len(re.findall(".*</a> was uploaded\.</div></td>", html_source)):
 			print("'%s' was added." % srr_file)
 			return True
-		elif len(re.findall(".*</a> already exists.*", html_source)):
+		elif len(re.findall(".*</a> is.*administrator.*", html_source)):
 			print("!!! '%s' already exists." % srr_file)
 		else:
 			print(html_source)
 		return False
 	
-def list_releases():
-	""" Prints out a list of all releases. This includes the upload date and
-	the availability of nfo and srs. """
-	for number in range(1, get_nb_pages() + 1):
-		r = get_releases(number)
-		for release in r:
-			print(release)
-		if len(r) < 1:
-			print("No releases on the page: check the regex.")
-			sys.exit()
-		if number % 10 == 0:
-			time.sleep(3) # so we won't be hammering the site too much
-	
-@urlErrorDecorator
-def get_releases(page_number):
-	""" Returns a list with release names. 
-	page_number: the number of the browse.php page """
-	request = Request(url=_URL + "browse.php?page=%d" % page_number,
-					  headers={'User-Agent' : _USER_AGENT})
-	response = urllib2.urlopen(request).read()
-	return re.findall('.*<a title="(?P<release>.+)" href="details.php\?'
-					  'release=(?P=release)">.*</a></div></td>\n'
-					  '\t+<td title="(?P<adddate>\d{4}-\d{2}-\d{2}'
-					  ' \d{2}:\d{2}:\d{2})">\d{4}-\d{2}-\d{2}</td>\n'
-					  '\t+<td class="(?P<nfo>low|high)"></td>\n'
-					  '\t+<td class="(?P<sample>low|medium|high)"></td>.*',
-					  response, re.MULTILINE)
-				
-@urlErrorDecorator
-def get_nb_pages():
-	""" Get the amount of pages from the browse.php page. """  
-	request = urllib2.Request(url="http://www.srrdb.com/browse.php")
-	response = urllib2.urlopen(request).read()
-	match = re.search(".*<a href=\"browse.php\?page="
-					 "(\d+)\">Last</a><br />.*", response)
-	print("Number of pages: %s" % match.group(1))
-	return int(match.group(1))
-
 def read_config():
 	"""The configuration file is in the same directory as the application."""
 	folder = os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -433,12 +395,6 @@ def main(options, args):
 	print("Site: %s" % _URL)
 	if _PROXY:
 		print("Proxy: %s" % _PROXY_URL)
-
-	if options.rellist:
-		if options.dry_run:
-			print("A dry run for getting the release names is not possible.")
-		list_releases()
-		sys.exit()
 	
 	if not options.dry_run:
 		try:
@@ -541,8 +497,6 @@ if __name__ == '__main__':
 					  action="store", dest="extensions")
 	parser.add_option("-t", "--fix-txt", help="fixes .txt files",
 					  action="store_true", dest="fix_txt", default=False)
-	parser.add_option("--rellist", help="list all releases",
-					  action="store_true", dest="rellist", default=False)
 	parser.add_option("--sleeptime", help="seconds to sleep (float)",
 					  type="float", dest="sleeptime", default=0.0) 
 	
