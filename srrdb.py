@@ -65,6 +65,8 @@ Version history:
 0.5 (2013-01-06)
 	- fixed for v2 of the site
 	- rellist code removed
+0.6 (2013-06-23)
+	- fixed for v2.5 of the site
 
 Author: Gfy <tsl@yninovg.pbz>
 """
@@ -89,7 +91,7 @@ import codecs
 _SUPPORTED_FILES = (".srs", ".srr",
                     ".avi.txt", ".mkv.txt", ".mp4.txt", ".wmv.txt") 
 
-__version__ = "0.5"
+__version__ = "0.6"
 _USER_AGENT = "Gfy's srrDB upload script version %s." % __version__
 
 # some configuration options
@@ -185,11 +187,12 @@ class Srrdb(object):
 		request = urllib2.Request(self.baseurl + "account/login", 
 		                          data, self.headers)
 		html_source = self.opener.open(request).read()
-		res = re.findall(".*Welcome, .+%s.+" % self.username, html_source)
+		res = re.findall("%s<br />" % self.username, html_source)
 		if len(res):
 			print("Authentication successful.")
-			match = re.match(".*/account/profile/(\d+).*", res[0])
-			self.user_id = match.group(1)
+			matches = re.findall(".*logged-in-links.*/account/profile/(\d+).*",
+								html_source)
+			self.user_id = matches[0]
 			print("%s has user id %s." % (self.username, self.user_id))
 		else:
 			print("Authentication unsuccessful.") # or the site has changed
@@ -278,12 +281,14 @@ class Srrdb(object):
 		handle = urllib2.urlopen(request)
 		html_source = handle.read()
 		
-		if len(re.findall(".*</a> was uploaded\.</div></td>", html_source)):
+		if len(re.findall(".* was uploaded\.", html_source)):
 			print("'%s' was added." % srr_file)
 			return True
-		elif len(re.findall(".*</a> is.*administrator.*", html_source)):
+		elif len(re.findall(".* is.*administrator.*", html_source)):
 			print("!!! '%s' already exists." % srr_file)
 		else:
+			# TODO: <span class="error">C.&.C.GENERALS.PLUS.2.Trainer.4.Single
+			# .Play-ReGDoX.srr contains illegal characters</span>
 			print(html_source)
 		return False
 	
