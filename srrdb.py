@@ -286,9 +286,9 @@ class Srrdb(object):
 			return True
 		elif len(re.findall(".* is.*administrator.*", html_source)):
 			print("!!! '%s' already exists." % srr_file)
+		elif len(re.findall(".*contains illegal characters.*", html_source)):
+			print("!!! '%s' contains illegal characters." % srr_file)
 		else:
-			# TODO: <span class="error">C.&.C.GENERALS.PLUS.2.Trainer.4.Single
-			# .Play-ReGDoX.srr contains illegal characters</span>
 			print(html_source)
 		return False
 	
