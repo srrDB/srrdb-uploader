@@ -67,8 +67,11 @@ Version history:
 	- rellist code removed
 0.6 (2013-06-23)
 	- fixed for v2.5 of the site
+0.7 (2014-01-13)
+	- max file size updated to 52428800
+	- fix for encoding issue on Russian Windows
 
-Author: Gfy <tsl@yninovg.pbz>
+Author: Gfy <clerfprar@tznvy.pbz>
 """
 
 from __future__ import unicode_literals
@@ -216,11 +219,14 @@ class Srrdb(object):
 		# "image1" is the name of the parameter, which is normally set
 		# via the "name" parameter of the HTML <input> tag.
 		
+		# Ensure file is Unicode:
+		filename = filename.decode(sys.getfilesystemencoding())
+		
 		# headers contains the necessary Content-Type and Content-Length
 		# datagen is a generator object that yields the encoded parameters
 		datagen, headers = multipart_encode({
 				"folder" : folder,
-				"MAX_FILE_SIZE" : 26214400,
+				"MAX_FILE_SIZE" : 52428800,
 				"file": open(filename, "rb"),
 				"add": "Add",})
 		headers = addDicts(self.headers, headers)
@@ -267,8 +273,11 @@ class Srrdb(object):
 		opener = register_openers()
 		if _PROXY:
 			opener.add_handler(ProxyHandler({_PROXY_TYPE : _PROXY_URL}))
+
+		# Ensure file is Unicode:
+		srr_file = srr_file.decode(sys.getfilesystemencoding())
 		datagen, headers = multipart_encode({
-				"MAX_FILE_SIZE" : 26214400,
+				"MAX_FILE_SIZE" : 52428800,
 				"file": open(srr_file, "rb"),
 				"upload": "Upload",})
 		headers = addDicts(self.headers, headers)
