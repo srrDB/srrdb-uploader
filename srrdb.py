@@ -80,6 +80,7 @@ from poster.streaminghttp import register_openers
 from urllib2 import HTTPCookieProcessor, ProxyHandler, Request
 import urllib
 import urllib2
+import httplib
 import cookielib
 import re
 import os
@@ -145,11 +146,13 @@ class urlErrorDecorator(object):
 	http://wiki.python.org/moin/PythonDecoratorLibrary """
 	def __init__(self, f):
 		self.f = f
+		self.attempt = 0
 
 	def __call__(self, *args, **kwargs):
 		# http://stackoverflow.com/questions/3465704/
 		# python-urllib2-urlerror-http-status-code
 		try:
+			self.attempt += 1
 			return self.f(*args, **kwargs)
 		except urllib2.HTTPError as e:
 			print("!!!! We failed with error code - %s." % e.code)
@@ -158,6 +161,14 @@ class urlErrorDecorator(object):
 				  "or you don't have an Internet connection.")
 			print("!!!! The error object has the following 'args' attribute:")
 			print(e.args)
+		except httplib.IncompleteRead: 
+			# IncompleteRead(271 bytes read, 606 more expected)
+			# duplicate uploads could cause larger file queues?
+			if self.attempt <= 5:
+				sleeptime = 5.0 * self.attempt
+				print("Retrying again after %d seconds..." % sleeptime)
+				time.sleep(sleeptime)
+				return self.__call__(*args, **kwargs)
 		except ValueError as e:
 			print("The URL is invalid or blank. Terminating.")
 			sys.exit(1)
