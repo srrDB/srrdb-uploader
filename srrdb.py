@@ -67,7 +67,7 @@ Version history:
 	- rellist code removed
 0.6 (2013-06-23)
 	- fixed for v2.5 of the site
-0.7 (2014-01-13)
+0.7 (2014-10-19)
 	- max file size updated to 52428800
 	- fix for encoding issue on Russian Windows
 
@@ -92,9 +92,11 @@ import codecs
 # supported extensions for files to add to a release
 # checks config file and -e parameter later on
 _SUPPORTED_FILES = (".srs", ".srr",
-                    ".avi.txt", ".mkv.txt", ".mp4.txt", ".wmv.txt") 
+                    ".avi.txt", ".mkv.txt", ".mp4.txt", ".wmv.txt",
+                    ".vob.txt", ".m2ts.txt", 
+                    ".mpg.txt", ".mpeg.txt", ".m2v.txt", ".m4v.txt") 
 
-__version__ = "0.6"
+__version__ = "0.7"
 _USER_AGENT = "Gfy's srrDB upload script version %s." % __version__
 
 # some configuration options
@@ -145,16 +147,20 @@ class urlErrorDecorator(object):
 		self.f = f
 
 	def __call__(self, *args, **kwargs):
+		# http://stackoverflow.com/questions/3465704/
+		# python-urllib2-urlerror-http-status-code
 		try:
 			return self.f(*args, **kwargs)
-		except (urllib2.URLError, urllib2.HTTPError), e:
-			if hasattr(e, "code"):
-				print("!!!! We failed with error code - %s." % e.code)
-			elif hasattr(e, 'reason'):
-				print("!!!! The error object has the following 'reason' "
-					"attribute:\n%s" % e.reason)
-				print("This usually means the server doesn't exist, is down, "
-					  "or you don't have an Internet connection.")
+		except urllib2.HTTPError as e:
+			print("!!!! We failed with error code - %s." % e.code)
+		except urllib2.URLError as e:
+			print("This usually means the server doesn't exist, is down, "
+				  "or you don't have an Internet connection.")
+			print("!!!! The error object has the following 'args' "
+				"attribute:\n%s" % e.args.decode('ascii', 'replace'))
+		except ValueError as e:
+			print("The URL is invalid or blank. Terminating.")
+			sys.exit(1)
 
 class Srrdb(object):
 	""" Class that supports stuff from srrdb.com """
@@ -258,7 +264,7 @@ class Srrdb(object):
 				print(html_source)
 				print("The site has been changed.")
 				success = False
-		except urllib2.HTTPError, e:
+		except urllib2.HTTPError as e:
 			if e.code == 404:
 				print("!!! '%s': no such release." % release)
 				success = False
@@ -319,7 +325,7 @@ def read_config():
 			_PROXY = True
 			_PROXY_TYPE = config.get("site", "proxy_type")
 			_PROXY_URL = config.get("site", "proxy_url")
-	except IOError, e:
+	except IOError as e:
 		# create config file
 		config.add_section("login")
 		config.set("login", "username", "username")
@@ -335,7 +341,7 @@ def read_config():
 		config.set("extensions", "ext", ",".join(_SUPPORTED_FILES))
 		
 		config.write(open(cfile, 'w'))
-	except ConfigParser.NoOptionError, e:
+	except ConfigParser.NoOptionError as e:
 		print(e)
 
 def guess_releasename(path):
