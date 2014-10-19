@@ -156,8 +156,8 @@ class urlErrorDecorator(object):
 		except urllib2.URLError as e:
 			print("This usually means the server doesn't exist, is down, "
 				  "or you don't have an Internet connection.")
-			print("!!!! The error object has the following 'args' "
-				"attribute:\n%s" % e.args.decode('ascii', 'replace'))
+			print("!!!! The error object has the following 'args' attribute:")
+			print(e.args)
 		except ValueError as e:
 			print("The URL is invalid or blank. Terminating.")
 			sys.exit(1)
