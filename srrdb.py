@@ -236,14 +236,15 @@ class Srrdb(object):
 		# Ensure file is Unicode:
 		filename = filename.decode(sys.getfilesystemencoding())
 		
-		# headers contains the necessary Content-Type and Content-Length
+		# new_headers contains the necessary Content-Type and Content-Length
 		# datagen is a generator object that yields the encoded parameters
-		datagen, headers = multipart_encode({
+		datagen, new_headers = multipart_encode({
 				"folder" : folder,
 				"MAX_FILE_SIZE" : 52428800,
 				"file": open(filename, "rb"),
 				"add": "Add",})
-		headers = dict(self.headers).update(headers)
+		headers = dict(self.headers) # makes copy original dict
+		headers.update(new_headers)
 		url = self.baseurl + "release/add/" + release
 		request = Request(url, datagen, headers)
 		opener.add_handler(HTTPCookieProcessor(self.cj))
@@ -290,11 +291,12 @@ class Srrdb(object):
 
 		# Ensure file is Unicode:
 		srr_file = srr_file.decode(sys.getfilesystemencoding())
-		datagen, headers = multipart_encode({
+		datagen, new_headers = multipart_encode({
 				"MAX_FILE_SIZE" : 52428800,
 				"file": open(srr_file, "rb"),
 				"upload": "Upload",})
-		headers = dict(self.headers).update(headers) # makes copy orig dict
+		headers = dict(self.headers) # makes copy original dict
+		headers.update(new_headers)
 		
 		url = self.baseurl + "upload"
 		request = Request(url, datagen, headers)
