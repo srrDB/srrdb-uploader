@@ -21,8 +21,11 @@ How it works:
 -------------
 
 !! Beware of side effects. Use the -n parameter before uploading. !!
+
 This script allows you to upload new SRR files to srrdb.com:
    srrdb.py first.file.srr second.release.srr
+   srrdb.py ./dir/structure/with/srr/files
+   
 It also allows you to _batch_ upload additional files such as .srs files:
    srrdb.py /path/to/a/directory/ C:\or\Windows\style
    srrdb.py . -n
@@ -37,9 +40,9 @@ Each directory must be structured in the following way:
    |       unreconstructable.sample.avi.txt
    |...
 It will walk the tree and tries to detect the release name based on bad
-directory names.
-SRS files are automatically put in a Sample/ folder. Other files do
-not get a folder set.
+directory names. SRS files are automatically put in a Sample/ folder. 
+Other files do not get a folder set.
+Vobsub .srr files aren't supported yet with this method?
 See _SUPPORTED_FILES for the type of files that are detected for upload.
 
 Download Python 2.7 from http://www.activestate.com/activepython/downloads
@@ -47,7 +50,7 @@ http://www.blog.pythonlibrary.org/2011/11/24/python-101-setting-up-python-on-win
 
 Install the dependencies that are necessary for this script:
   pypm.exe install poster
-   or if you use the regular CPython version:
+or if you use the regular CPython version:
   easy_install.exe poster
 http://pypi.python.org/pypi/setuptools
 
@@ -67,9 +70,10 @@ Version history:
 	- rellist code removed
 0.6 (2013-06-23)
 	- fixed for v2.5 of the site
-0.7 (2014-10-19)
+0.7 (2014-10-25)
 	- max file size updated to 52428800
 	- fix for encoding issue on Russian Windows
+	- continue uploading when errors occur
 
 Author: Gfy <clerfprar@tznvy.pbz>
 """
@@ -161,9 +165,11 @@ class urlErrorDecorator(object):
 				  "or you don't have an Internet connection.")
 			print("!!!! The error object has the following 'args' attribute:")
 			print(e.args)
-		except httplib.IncompleteRead: 
+		except httplib.HTTPException: 
 			# IncompleteRead(271 bytes read, 606 more expected)
 			# duplicate uploads could cause larger file queues?
+			#     -> only when rarhash doesn't match
+			# httplib.BadStatusLine: ''
 			if self.attempt <= 5:
 				sleeptime = 5.0 * self.attempt
 				print("Retrying again after %d seconds..." % sleeptime)
