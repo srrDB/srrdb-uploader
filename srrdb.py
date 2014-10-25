@@ -151,6 +151,11 @@ class urlErrorDecorator(object):
 			return self.f(*args, **kwargs)
 		except urllib2.HTTPError as e:
 			print("!!!! We failed with error code - %s." % e.code)
+			if self.attempt <= 5:
+				sleeptime = 5.0 * self.attempt
+				print("Retrying again after %d seconds..." % sleeptime)
+				time.sleep(sleeptime)
+				return self.__call__(*args, **kwargs)
 		except urllib2.URLError as e:
 			print("This usually means the server doesn't exist, is down, "
 				  "or you don't have an Internet connection.")
