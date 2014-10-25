@@ -132,15 +132,6 @@ def fix_txt(file_path):
 		f.close()
 	else:
 		print("Nothing done for %s!" % os.path.basename(file_path))
-		
-def addDicts(a, b):
-	""" Joins two hashmaps """
-	c = {}
-	for item in a:
-		c[item] = a[item]
-	for item in b:
-		c[item] = b[item]
-	return c
 
 class urlErrorDecorator(object):
 	""" Decorator to share the same error handling code for the url calling
@@ -252,7 +243,7 @@ class Srrdb(object):
 				"MAX_FILE_SIZE" : 52428800,
 				"file": open(filename, "rb"),
 				"add": "Add",})
-		headers = addDicts(self.headers, headers)
+		headers = dict(self.headers).update(headers)
 		url = self.baseurl + "release/add/" + release
 		request = Request(url, datagen, headers)
 		opener.add_handler(HTTPCookieProcessor(self.cj))
@@ -303,7 +294,7 @@ class Srrdb(object):
 				"MAX_FILE_SIZE" : 52428800,
 				"file": open(srr_file, "rb"),
 				"upload": "Upload",})
-		headers = addDicts(self.headers, headers)
+		headers = dict(self.headers).update(headers) # makes copy orig dict
 		
 		url = self.baseurl + "upload"
 		request = Request(url, datagen, headers)
