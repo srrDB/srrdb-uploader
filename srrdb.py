@@ -82,6 +82,7 @@ from __future__ import unicode_literals
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
 from urllib2 import HTTPCookieProcessor, ProxyHandler, Request
+from socket import socket
 import urllib
 import urllib2
 import httplib
@@ -161,11 +162,12 @@ class urlErrorDecorator(object):
 				  "or you don't have an Internet connection.")
 			print("!!!! The error object has the following 'args' attribute:")
 			print(e.args)
-		except httplib.HTTPException: 
+		except (httplib.HTTPException, socket.error):
 			# IncompleteRead(271 bytes read, 606 more expected)
 			# duplicate uploads could cause larger file queues?
 			#     -> only when rarhash doesn't match
 			# httplib.BadStatusLine: ''
+			# socket.error: [Errno 10053]
 			if self.attempt <= 5:
 				sleeptime = 5.0 * self.attempt
 				print("Retrying again after %d seconds..." % sleeptime)
