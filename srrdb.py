@@ -82,7 +82,7 @@ from __future__ import unicode_literals
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
 from urllib2 import HTTPCookieProcessor, ProxyHandler, Request
-from socket import socket
+from socket import error as socket_error
 import urllib
 import urllib2
 import httplib
@@ -99,7 +99,7 @@ import codecs
 # checks config file and -e parameter later on
 _SUPPORTED_FILES = (".srs", ".srr",
                     ".avi.txt", ".mkv.txt", ".mp4.txt", ".wmv.txt",
-                    ".vob.txt", ".m2ts.txt", 
+                    ".vob.txt", ".m2ts.txt", ".m2p.txt",
                     ".mpg.txt", ".mpeg.txt", ".m2v.txt", ".m4v.txt") 
 
 __version__ = "0.7"
@@ -162,7 +162,7 @@ class urlErrorDecorator(object):
 				  "or you don't have an Internet connection.")
 			print("!!!! The error object has the following 'args' attribute:")
 			print(e.args)
-		except (httplib.HTTPException, socket.error):
+		except (httplib.HTTPException, socket_error):
 			# IncompleteRead(271 bytes read, 606 more expected)
 			# duplicate uploads could cause larger file queues?
 			#     -> only when rarhash doesn't match
