@@ -75,6 +75,14 @@ Version history:
 	- fix for encoding issue on Russian Windows
 	- continue uploading when errors occur
 
+Exit codes:
+0   Successful termination
+1   Configuration error (bad URL)
+2   Unrecoverable error (server down, no Internet connection)
+
+To use in future version when there is a nice upload API:
+http://docs.python-requests.org/en/latest/
+
 Author: Gfy <clerfprar@tznvy.pbz>
 """
 
@@ -157,11 +165,20 @@ class urlErrorDecorator(object):
 				print("Retrying again after %d seconds..." % sleeptime)
 				time.sleep(sleeptime)
 				return self.__call__(*args, **kwargs)
+			else:
+				sys.exit(2)
 		except urllib2.URLError as e:
 			print("This usually means the server doesn't exist, is down, "
 				  "or you don't have an Internet connection.")
 			print("!!!! The error object has the following 'args' attribute:")
 			print(e.args)
+			if self.attempt <= 5:
+				sleeptime = 5.0 * self.attempt
+				print("Retrying again after %d seconds..." % sleeptime)
+				time.sleep(sleeptime)
+				return self.__call__(*args, **kwargs)
+			else:
+				sys.exit(2)
 		except (httplib.HTTPException, socket_error):
 			# IncompleteRead(271 bytes read, 606 more expected)
 			# duplicate uploads could cause larger file queues?
@@ -173,6 +190,8 @@ class urlErrorDecorator(object):
 				print("Retrying again after %d seconds..." % sleeptime)
 				time.sleep(sleeptime)
 				return self.__call__(*args, **kwargs)
+			else:
+				sys.exit(2)
 		except ValueError as e:
 			print("The URL is invalid or blank. Terminating.")
 			sys.exit(1)
