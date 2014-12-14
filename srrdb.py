@@ -70,10 +70,11 @@ Version history:
 	- rellist code removed
 0.6 (2013-06-23)
 	- fixed for v2.5 of the site
-0.7 (2014-10-25)
+0.7 (2014-12-14)
 	- max file size updated to 52428800
 	- fix for encoding issue on Russian Windows
 	- continue uploading when errors occur
+	- handling of redirects (different capitals in release name)
 
 Exit codes:
 0   Successful termination
@@ -295,6 +296,16 @@ class Srrdb(object):
 	#							html_source)):  
 	#			print("!!! '%s': file already added." % fn)
 	#			success = False
+			elif len(re.findall("You were redirected to this page", html_source)):
+				# grab release name from top of details page
+				match = re.search(".*RELEASE .*value=\"(.*)\".*", html_source)
+				if match:
+					release = match.group(1)
+					print("??? Redirecting to '%s'." % release)
+					success = self.add_file(self, release, filename, folder)
+				else:
+					print("!!! Error uploading file to '%s'." % release)
+					success = False
 			else:
 				print(html_source)
 				print("The site has been changed.")
