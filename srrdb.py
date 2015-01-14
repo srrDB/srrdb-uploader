@@ -125,7 +125,7 @@ _PASSWORD = ""
 _URL = "http://www.srrdb.com/"
 
 def fix_txt(file_path):
-	""" Cleans up .ext.txt files created by the DOS script. """
+	"""Cleans up .ext.txt files created by the DOS script."""
 	if options.dry_run:
 		print("Fixing '%s'." % os.path.basename(file_path))
 		return
@@ -144,7 +144,7 @@ def fix_txt(file_path):
 		print("Nothing done for %s!" % os.path.basename(file_path))
 
 class urlErrorDecorator(object):
-	""" Decorator to share the same error handling code for the url calling
+	"""Decorator to share the same error handling code for the url calling
 	stuff needed by a lot of functions.
 	A nice intro to decorators:
 	http://www.artima.com/weblogs/viewpost.jsp?thread=240808 
@@ -198,7 +198,7 @@ class urlErrorDecorator(object):
 			sys.exit(1)
 
 class Srrdb(object):
-	""" Class that supports stuff from srrdb.com """
+	"""Class that supports stuff from srrdb.com"""
 	def __init__(self, username, password):
 		self.cj = cj = cookielib.CookieJar()
 		
@@ -226,12 +226,12 @@ class Srrdb(object):
 
 	@urlErrorDecorator
 	def _login(self):
-		""" Authenticate. """  
+		"""Authenticate."""  
 		data = urllib.urlencode(self.body)
 		request = urllib2.Request(self.baseurl + "account/login", 
 		                          data, self.headers)
 		html_source = self.opener.open(request).read()
-		res = re.findall("%s<br />" % self.username, html_source)
+		res = re.findall("%s - " % self.username, html_source)
 		if len(res):
 			print("Authentication successful.")
 			matches = re.findall(".*logged-in-links.*/account/profile/(\d+).*",
@@ -243,7 +243,8 @@ class Srrdb(object):
 
 	@urlErrorDecorator
 	def add_file(self, release, filename, folder):
-		""" release: the release name
+		"""
+		release: the release name
 		filename: path where to find the file on HD
 		folder: the folder to the SRR e.g. "Sample" without the /
 		"""
@@ -321,7 +322,7 @@ class Srrdb(object):
 
 	@urlErrorDecorator
 	def add_release(self, srr_file):
-		""" srr_file: the srr file to upload  """
+		"""srr_file: the srr file to upload"""
 		opener = register_openers()
 		if _PROXY:
 			opener.add_handler(ProxyHandler({_PROXY_TYPE : _PROXY_URL}))
@@ -401,7 +402,7 @@ def guess_releasename(path):
 		return tail
 		
 def process_file(srrdb, path, pfile):
-	""" returns (processed, success) """
+	"""returns (processed, success)"""
 	lengths = set([len(f) for f in _SUPPORTED_FILES])
 	# the file has one of the allowed extentions
 	if len(filter(lambda l: pfile[-l:] in _SUPPORTED_FILES, lengths)):
@@ -482,7 +483,7 @@ def main(options, args):
 		if os.path.isfile(element) and element[-4:] == ".srr":
 			srr_count += 1
 			if options.dry_run:
-				print("Uploading '%s'." % element)
+				print("Uploading '%s'." % basename)
 			else:
 				# change current working dir 
 				# (so no path info is send to the server
