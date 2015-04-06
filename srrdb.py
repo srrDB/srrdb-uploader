@@ -158,7 +158,9 @@ class urlErrorDecorator(object):
 		# python-urllib2-urlerror-http-status-code
 		try:
 			self.attempt += 1
-			return self.f(*args, **kwargs)
+			response = self.f(*args, **kwargs)
+			self.attempt = 0 # success! reset counter
+			return response
 		except urllib2.HTTPError as e:
 			print("!!!! We failed with error code - %s." % e.code)
 			if self.attempt <= 5:
