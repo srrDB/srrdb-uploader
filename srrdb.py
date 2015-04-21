@@ -275,7 +275,7 @@ class Srrdb(object):
 				"add": "Add",})
 		headers = dict(self.headers) # makes copy original dict
 		headers.update(new_headers)
-		url = self.baseurl + "release/add/" + release
+		url = self.baseurl + "release/add/" + release.replace(' ', '%20')
 		request = Request(url, datagen, headers)
 		opener.add_handler(HTTPCookieProcessor(self.cj))
 		
