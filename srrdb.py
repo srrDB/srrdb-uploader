@@ -70,11 +70,12 @@ Version history:
 	- rellist code removed
 0.6 (2013-06-23)
 	- fixed for v2.5 of the site
-0.7 (2014-12-14)
+0.7 (2015-06-21)
 	- max file size updated to 52428800
 	- fix for encoding issue on Russian Windows
 	- continue uploading when errors occur
 	- handling of redirects (different capitals in release name)
+	- error handling issues fixed
 
 Exit codes:
 0   Successful termination
@@ -123,6 +124,8 @@ _PROXY_URL = "http://127.0.0.1:8008" # WebScarab
 _USERNAME = ""
 _PASSWORD = ""
 _URL = "http://www.srrdb.com/"
+
+_MAX_FILE_SIZE = 52428800
 
 def fix_txt(file_path):
 	"""Cleans up .ext.txt files created by the DOS script."""
@@ -270,7 +273,7 @@ class Srrdb(object):
 		# datagen is a generator object that yields the encoded parameters
 		datagen, new_headers = multipart_encode({
 				"folder" : folder,
-				"MAX_FILE_SIZE" : 52428800,
+				"MAX_FILE_SIZE" : _MAX_FILE_SIZE,
 				"file": open(filename, "rb"),
 				"add": "Add",})
 		headers = dict(self.headers) # makes copy original dict
@@ -332,7 +335,7 @@ class Srrdb(object):
 		# Ensure file is Unicode:
 		srr_file = srr_file.decode(sys.getfilesystemencoding())
 		datagen, new_headers = multipart_encode({
-				"MAX_FILE_SIZE" : 52428800,
+				"MAX_FILE_SIZE" : _MAX_FILE_SIZE,
 				"file": open(srr_file, "rb"),
 				"upload": "Upload",})
 		headers = dict(self.headers) # makes copy original dict
