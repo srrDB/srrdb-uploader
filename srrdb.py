@@ -76,6 +76,10 @@ Version history:
 	- continue uploading when errors occur
 	- handling of redirects (different capitals in release name)
 	- error handling issues fixed
+0.8 (2015-07-21)
+	- maximum upload file size updated to 200MiB 
+	- option added to define a subfolder for all file uploads
+	- wrong subfolder could be used for releases tagged 'Subbed'
 
 Exit codes:
 0   Successful termination
@@ -125,7 +129,7 @@ _USERNAME = ""
 _PASSWORD = ""
 _URL = "http://www.srrdb.com/"
 
-_MAX_FILE_SIZE = 52428800
+_MAX_FILE_SIZE = 209715200
 
 def fix_txt(file_path):
 	"""Cleans up .ext.txt files created by the DOS script."""
@@ -406,7 +410,7 @@ def guess_releasename(path):
 	else:
 		return tail
 		
-def process_file(srrdb, path, pfile):
+def process_file(srrdb, path, pfile, subfolder=""):
 	"""returns (processed, success)"""
 	lengths = set([len(f) for f in _SUPPORTED_FILES])
 	# the file has one of the allowed extentions
@@ -429,7 +433,8 @@ def process_file(srrdb, path, pfile):
 #				return (False, False)
 		if pfile[-4:] in (".sfv"):
 			(_head, tail) = os.path.split(path)			  
-			if "sub" in tail.lower():
+			if tail.lower() in ("subs", "vobsubs", "vobsub", "sub",
+			                    "subtitle", "subtitles"):
 				srr_dir = tail
 			else:
 				srr_dir = ""
@@ -439,6 +444,9 @@ def process_file(srrdb, path, pfile):
 			(_head, tail) = os.path.split(path)
 			if "nfofix" in tail.lower():
 				srr_dir = tail
+				
+		if not srr_dir:
+			srr_dir = subfolder
 				
 		print("Storing file '%s' in '%s' with release" % (pfile, srr_dir))
 		print("             '%s'." % relname)
@@ -526,7 +534,8 @@ def main(options, args):
 							sys.stdout.flush()
 					# store files in the SRR on the site
 					else:
-						(processed, success) = process_file(s, dirpath, fname)
+						(processed, success) = process_file(
+							s, dirpath, fname, options.subfolder)
 						if processed:
 							add_count += 1
 							if not success:
@@ -552,26 +561,30 @@ if __name__ == '__main__':
 	
 	auth = optparse.OptionGroup(parser, "Authentication")
 	auth.set_description("The credentials that are needed to login to "
-						 "srrdb.com. SRR files will but uploaded anonymously "
+						 "srrdb.com. SRR files will be uploaded anonymously "
 						 "if no or no correct credentials are supplied.")
 	parser.add_option_group(auth)
 	
 	auth.add_option("-l", "--login", help="supply username", 
-					 metavar="USERNAME", default=_USERNAME, dest="login")
+	                metavar="USERNAME", default=_USERNAME, dest="login")
 	auth.add_option("-p", "--password", help="supply password", 
-					 metavar="PASSWORD", default=_PASSWORD, dest="password")
+	                metavar="PASSWORD", default=_PASSWORD, dest="password")
 	
 	parser.add_option("-n", "--dry-run", help="do no harm but will fix "
-					  "txt files when -t is used",
-					  action="store_true", dest="dry_run", default=False)
+	                  "txt files when -t is used",
+	                  action="store_true", dest="dry_run", default=False)
 	parser.add_option("-e", "--extensions", 
-					  help="only add files with one of these extensions "
-					  "to a release",
-					  action="store", dest="extensions")
+	                  help="only add files with one of these extensions "
+	                  "to a release", action="store", dest="extensions")
+	parser.add_option("-f", "--subfolder", 
+	                  help="name of the subfolder to put all files in"
+	                  " when no better subfolder is available e.g. Proof",
+	                  action="store", dest="subfolder", default="")
 	parser.add_option("-t", "--fix-txt", help="fixes .txt files",
-					  action="store_true", dest="fix_txt", default=False)
-	parser.add_option("--sleeptime", help="seconds to sleep (float)",
-					  type="float", dest="sleeptime", default=0.0) 
+	                  action="store_true", dest="fix_txt", default=False)
+	parser.add_option("--sleeptime", help="seconds to pause "
+	                  "between each file upload (float)",
+	                  type="float", dest="sleeptime", default=0.0) 
 	
 	# no arguments given
 	if len(sys.argv) < 2:
