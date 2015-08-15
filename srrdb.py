@@ -489,7 +489,9 @@ def main(options, args):
 		s = None
 
 	add_count = srr_count = add_error = srr_dupe = 0
+	curdir = os.path.abspath(os.curdir)
 	for element in args:
+		os.chdir(curdir)  # reset to initial path
 		element = os.path.abspath(element)
 		dirname = os.path.dirname(element)
 		basename = os.path.basename(element)
