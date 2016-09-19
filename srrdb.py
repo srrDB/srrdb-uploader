@@ -80,6 +80,8 @@ Version history:
 	- maximum upload file size updated to 200MiB 
 	- option added to define a subfolder for all file uploads
 	- wrong subfolder could be used for releases tagged 'Subbed'
+0.9 (2016-09-19)
+	- srrDB is now https only: default url changed
 
 Exit codes:
 0   Successful termination
@@ -116,7 +118,7 @@ _SUPPORTED_FILES = (".srs", ".srr",
                     ".vob.txt", ".m2ts.txt", ".m2p.txt",
                     ".mpg.txt", ".mpeg.txt", ".m2v.txt", ".m4v.txt") 
 
-__version__ = "0.7"
+__version__ = "0.9"
 _USER_AGENT = "Gfy's srrDB upload script version %s." % __version__
 
 # some configuration options
@@ -127,7 +129,7 @@ _PROXY_URL = "http://127.0.0.1:8008" # WebScarab
 # srrdb.com credentials
 _USERNAME = ""
 _PASSWORD = ""
-_URL = "http://www.srrdb.com/"
+_URL = "https://www.srrdb.com/"
 
 _MAX_FILE_SIZE = 209715200
 
@@ -367,6 +369,7 @@ class Srrdb(object):
 def read_config():
 	"""The configuration file is in the same directory as the application."""
 	folder = os.path.dirname(os.path.realpath(sys.argv[0]))
+	print("Reading srrdb.cfg from: %s" % folder)
 	config = ConfigParser.ConfigParser()
 	global _SUPPORTED_FILES, _USERNAME, _PASSWORD, _URL,  \
 			_PROXY, _PROXY_TYPE, _PROXY_URL
