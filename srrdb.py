@@ -82,6 +82,9 @@ Version history:
 	- wrong subfolder could be used for releases tagged 'Subbed'
 0.9 (2016-09-19)
 	- srrDB is now https only: default url changed
+	
+0.10
+	- detect correct subfolders for Proof and Covers directories
 
 Exit codes:
 0   Successful termination
@@ -429,15 +432,15 @@ def process_file(srrdb, path, pfile, subfolder=""):
 				srr_dir = tail
 		if pfile[-4:] in (".jpg", ".png", ".gif", ".bmp"):
 			(_head, tail) = os.path.split(path)			  
-			if tail.lower() == "proof":
+			if tail.lower() in ("proof", "cover", "covers"):
 				srr_dir = tail
 			else:
 				srr_dir = ""
 #				return (False, False)
-		if pfile[-4:] in (".sfv"):
+		if pfile[-4:] in (".sfv", ".rar"):
 			(_head, tail) = os.path.split(path)			  
 			if tail.lower() in ("subs", "vobsubs", "vobsub", "sub",
-			                    "subtitle", "subtitles"):
+			                    "subtitle", "subtitles", "proof"):
 				srr_dir = tail
 			else:
 				srr_dir = ""
