@@ -83,8 +83,17 @@ Version history:
 0.9 (2016-09-19)
 	- srrDB is now https only: default url changed
 	
-0.10
+0.10 (2016-11-28)
 	- detect correct subfolders for Proof and Covers directories
+	- Windows .exe file with pyinstaller instead of py2exe
+	pyinstaller --onefile --name=srrdb srrdb.py
+	
+1.0 todo
+	make it Python 3
+	force parameter for file uploads to differentiate subs .srr files
+	use requests library
+	
+	
 
 Exit codes:
 0   Successful termination
@@ -121,7 +130,7 @@ _SUPPORTED_FILES = (".srs", ".srr",
                     ".vob.txt", ".m2ts.txt", ".m2p.txt",
                     ".mpg.txt", ".mpeg.txt", ".m2v.txt", ".m4v.txt") 
 
-__version__ = "0.9"
+__version__ = "0.10"
 _USER_AGENT = "Gfy's srrDB upload script version %s." % __version__
 
 # some configuration options

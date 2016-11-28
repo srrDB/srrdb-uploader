@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: latin-1 -*-
+
 from distutils.core import setup
 import py2exe
 import sys
