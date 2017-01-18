@@ -82,7 +82,6 @@ Version history:
 	- wrong subfolder could be used for releases tagged 'Subbed'
 0.9 (2016-09-19)
 	- srrDB is now https only: default url changed
-	
 0.10 (2016-11-28)
 	- detect correct subfolders for Proof and Covers directories
 	- Windows .exe file with pyinstaller instead of py2exe

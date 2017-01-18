@@ -1,0 +1,4 @@
+plugin.description: This plugin allows to create srr of a torrent and upload it to srrdb
+plugin.author: ac3
+plugin.version: 1.0
+rtorrent.need: 1
