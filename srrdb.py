@@ -439,13 +439,13 @@ def process_file(srrdb, path, pfile, subfolder=""):
 			if tail.lower() == "sample":
 				srr_dir = tail
 		if pfile[-4:] in (".jpg", ".png", ".gif", ".bmp"):
-			(_head, tail) = os.path.split(path)			  
+			(_head, tail) = os.path.split(path)
 			if tail.lower() in ("proof", "cover", "covers"):
 				srr_dir = tail
 			else:
 				srr_dir = ""
 #				return (False, False)
-		if pfile[-4:] in (".sfv", ".rar"):
+		if pfile[-4:] in (".sfv", ".rar", ".srr"):
 			(_head, tail) = os.path.split(path)			  
 			if tail.lower() in ("subs", "vobsubs", "vobsub", "sub",
 			                    "subtitle", "subtitles", "proof"):
@@ -509,7 +509,7 @@ def main(options, args):
 		element = os.path.abspath(element)
 		dirname = os.path.dirname(element)
 		basename = os.path.basename(element)
-		if os.path.isfile(element) and element[-4:] == ".srr":
+		if os.path.isfile(element) and element.endswith(".srr"):
 			srr_count += 1
 			if options.dry_run:
 				print("Uploading '%s'." % basename)
@@ -528,28 +528,34 @@ def main(options, args):
 			for dirpath, _dirnames, filenames in os.walk(element):
 				for fname in sorted(filenames):
 					# just fix .txt files; will overwrite the text fname
-					if fname[-4:] == ".txt" and options.fix_txt:
+					if fname.endswith(".txt") and options.fix_txt:
 						try:
 							fix_txt(os.path.join(dirpath, fname))
 						except:
 							print("Fixing failed for %s. Quitting." % fname)
 							print(sys.exc_info())
 							sys.exit(1)
-					# add a new release (.srr) to the database
-					# TODO: should be adding .srr in the release (for subs)
-					# if it contains vobsubs
-					if fname[-4:] == ".srr" and fname[-4:] in _SUPPORTED_FILES:
-						srr_count += 1
-						if options.dry_run:
-							print("Uploading '%s'." % fname)
-						else:
-							os.chdir(dirpath)
-							pause_exec()
-							if not s.add_release(s, fname):
-								srr_dupe += 1
-							sys.stdout.flush()
+
+					# add a new release (.srr) to the database OR store it
+					is_new_srr = False
+					if fname.endswith(".srr") and fname[-4:] in _SUPPORTED_FILES:
+						data = b""
+						with open(os.path.join(dirpath, fname), "rb") as sf:
+							data = sf.read()
+						if data.find(b"languages.diz") == -1:
+							is_new_srr = True 
+							srr_count += 1
+							if options.dry_run:
+								print("Uploading '%s'." % fname)
+							else:
+								os.chdir(dirpath)
+								pause_exec()
+								if not s.add_release(s, fname):
+									srr_dupe += 1
+								sys.stdout.flush()
+
 					# store files in the SRR on the site
-					else:
+					if not is_new_srr:
 						(processed, success) = process_file(
 							s, dirpath, fname, options.subfolder)
 						if processed:
