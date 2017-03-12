@@ -526,7 +526,7 @@ def main(options, args):
 			# add srs, jpg, jpeg, png files to the actual release on site
 			# only walk folders and add these files
 			for dirpath, _dirnames, filenames in os.walk(element):
-				for fname in filenames:
+				for fname in filenames.sort():
 					# just fix .txt files; will overwrite the text fname
 					if fname[-4:] == ".txt" and options.fix_txt:
 						try:
