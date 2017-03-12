@@ -9,7 +9,7 @@
 # I think it now says something like "is a dupe and will be checked by an administrator"
 # I just had mine dump out the entire html and check it manually :)
 
-username="sha0lin"
+username=""
 password=""
 
 messages="was added|already exist|is not an srr file|contains illegal characters|is too large to be extracted|is a 0 byte file|is a folder|is too large to be uploaded"
