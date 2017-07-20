@@ -333,6 +333,9 @@ class Srrdb(object):
 				print(html_source)
 				print("The site has been changed.")
 				success = False
+				if "<html" not in html_source:
+					# keep retrying again in this case
+					raise httplib.HTTPException("No HTML recieved")
 		except urllib2.HTTPError as e:
 			if e.code == 404:
 				print("!!! '%s': no such release." % release)
