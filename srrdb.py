@@ -526,6 +526,9 @@ def main(options, args):
 				sys.stdout.flush()
 		elif os.path.isdir(element):
 			print("Processing files to upload (%s)" % element)
+			def is_release_srr(dirpath, srrfile):
+				return os.path.abspath(element) == dirpath or (
+					srrfile[:-4] == os.path.basename(element))
 			# add srs, jpg, jpeg, png files to the actual release on site
 			# only walk folders and add these files
 			for dirpath, _dirnames, filenames in os.walk(element):
@@ -542,10 +545,7 @@ def main(options, args):
 					# add a new release (.srr) to the database OR store it
 					is_new_srr = False
 					if fname.endswith(".srr") and fname[-4:] in _SUPPORTED_FILES:
-						data = b""
-						with open(os.path.join(dirpath, fname), "rb") as sf:
-							data = sf.read()
-						if data.find(b"languages.diz") == -1:
+						if is_release_srr(dirpath, fname):
 							is_new_srr = True 
 							srr_count += 1
 							if options.dry_run:
